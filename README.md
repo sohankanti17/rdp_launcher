@@ -11,6 +11,10 @@ Notepad.
 ![UI](https://img.shields.io/badge/UI-WPF-2C3E50)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+## Download
+
+[Download latest release](https://github.com/sohankanti17/rdp_launcher/releases/latest)
+
 > **Why it exists:** connecting to a VM the normal way means a `.rdp` double-click,
 > a clipboard prompt, "More choices → Use a different account," and a paste from
 > wherever you keep credentials — every single time. RDP Launcher collapses all
