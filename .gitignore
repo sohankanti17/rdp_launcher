@@ -1,0 +1,69 @@
+# ---- Build output ----
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+out/
+publish/
+app.publish/
+
+# ---- Build configurations (default output dirs) ----
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# ---- Visual Studio ----
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.csproj.user
+*.vcxproj.user
+
+# ---- Rider / JetBrains ----
+.idea/
+*.DotSettings.user
+
+# ---- VS Code ----
+.vscode/
+
+# ---- Test results ----
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# ---- NuGet ----
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+
+# ---- MSBuild / logs ----
+*.binlog
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# ---- Installer output (Inno Setup) ----
+Output/
+*Setup.exe
+
+# ---- OS / misc ----
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.tmp

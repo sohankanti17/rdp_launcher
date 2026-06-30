@@ -1,0 +1,59 @@
+<Window x:Class="RdpLauncher.WidgetWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:RdpLauncher"
+        Title="RDP" Icon="app.ico"
+        WindowStyle="None" ResizeMode="CanResizeWithGrip" Topmost="True"
+        ShowInTaskbar="False" Width="240" Height="440"
+        WindowStartupLocation="Manual" Background="Transparent"
+        FontFamily="Segoe UI" FontSize="13">
+  <Border Background="White" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="6">
+    <DockPanel>
+      <!-- Drag handle / mini header -->
+      <Border DockPanel.Dock="Top" Background="#2563EB" Height="26"
+              MouseLeftButtonDown="Header_MouseDown">
+        <Grid>
+          <TextBlock Text="RDP" Foreground="White" FontWeight="Bold"
+                     VerticalAlignment="Center" Margin="10,0"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                      VerticalAlignment="Center" Margin="0,0,4,0">
+            <Button x:Name="BtnManager" Content="&#9881;" ToolTip="Open manager"
+                    Width="22" Height="22" Foreground="White" Background="Transparent"
+                    BorderThickness="0" Click="BtnManager_Click"/>
+            <Button x:Name="BtnHide" Content="&#215;" ToolTip="Hide to tray"
+                    Width="22" Height="22" Foreground="White" Background="Transparent"
+                    BorderThickness="0" Click="BtnHide_Click"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <TreeView x:Name="Tree" BorderThickness="0" Padding="2"
+                MouseDoubleClick="Tree_MouseDoubleClick">
+        <TreeView.Resources>
+          <HierarchicalDataTemplate DataType="{x:Type local:Group}" ItemsSource="{Binding Profiles}">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+              <TextBlock Text="{Binding Profiles.Count, StringFormat=' ({0})'}" Foreground="Gray"/>
+            </StackPanel>
+          </HierarchicalDataTemplate>
+          <DataTemplate DataType="{x:Type local:Profile}">
+            <TextBlock Text="{Binding Name}"/>
+          </DataTemplate>
+        </TreeView.Resources>
+        <TreeView.ItemContainerStyle>
+          <Style TargetType="TreeViewItem">
+            <Setter Property="IsExpanded" Value="True"/>
+          </Style>
+        </TreeView.ItemContainerStyle>
+        <TreeView.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="Connect" Click="MenuConnect_Click"/>
+            <Separator/>
+            <MenuItem Header="Open manager" Click="BtnManager_Click"/>
+            <MenuItem Header="Hide to tray" Click="BtnHide_Click"/>
+          </ContextMenu>
+        </TreeView.ContextMenu>
+      </TreeView>
+    </DockPanel>
+  </Border>
+</Window>
