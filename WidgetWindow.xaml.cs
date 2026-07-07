@@ -7,6 +7,8 @@ namespace RdpLauncher;
 
 public partial class WidgetWindow : Window
 {
+    private bool _allExpanded = true;
+
     public WidgetWindow()
     {
         InitializeComponent();
@@ -78,6 +80,18 @@ public partial class WidgetWindow : Window
         if (Tree.SelectedItem is not Profile p) return;
         var pwd = Crypto.Unprotect(p.PasswordEnc);
         Clipboard.SetText($"Host: {p.Host}\nUsername: {p.Username}\nPassword: {pwd}");
+    }
+
+    private void BtnToggleExpand_Click(object sender, RoutedEventArgs e)
+    {
+        _allExpanded = !_allExpanded;
+        foreach (var group in ((App)Application.Current).Data.Groups)
+        {
+            if (Tree.ItemContainerGenerator.ContainerFromItem(group) is TreeViewItem item)
+                item.IsExpanded = _allExpanded;
+        }
+        BtnToggleExpand.Content = _allExpanded ? "▼" : "▶";
+        BtnToggleExpand.ToolTip = _allExpanded ? "Collapse all groups" : "Expand all groups";
     }
 
     private void BtnRestore_Click(object sender, RoutedEventArgs e)
