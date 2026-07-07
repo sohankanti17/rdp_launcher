@@ -52,6 +52,10 @@ The main window for managing connections, credentials, and settings.
   so Windows' "Unknown publisher" warning never appears.
 - **Portable** — a single self-contained `.exe`, or a small framework-dependent
   build. No PowerShell, no console windows.
+- **Copy credentials** — right-click any VM in the widget to copy Host, Username,
+  and Password to clipboard for quick sharing with your team.
+- **Expand / collapse all groups** — toggle button in the widget header to collapse
+  or expand all groups at once.
 
 ---
 
