@@ -254,6 +254,22 @@ iscc RdpLauncher.iss      # produces RdpLauncherSetup.exe
 
 ---
 
+## Changelog
+
+### v1.1.0
+**Features**
+- **Copy credentials** — Right-click a VM in the widget to copy Host, Username, and Password to clipboard, ready to share with your team.
+- **Toggle expand/collapse** — ▼/▶ button in the widget header collapses or expands all groups at once.
+
+**Bug fixes**
+- **Group change crash** — Changing a VM's group in the Manager and saving no longer crashes the app.
+- **Widget restore button** — ↻ button in the widget header resets the widget to its default size and position, fixing the multi-monitor shrink issue.
+
+### v1.0.0
+- Initial release.
+
+---
+
 ## Roadmap ideas
 
 - Auto-collapse the widget to a thin strip until hovered
