@@ -118,33 +118,38 @@ public partial class MainWindow : Window
                           ?? _data.Groups.FirstOrDefault()
                           ?? _data.GetOrCreateGroup("My VMs");
 
+        // Capture before collection changes trigger Tree_SelectedItemChanged re-entrancy
+        // which can null out _current mid-save.
+        var profile = _current ?? new Profile();
+
         if (_current == null)
         {
-            _current = new Profile();
-            targetGroup.Profiles.Add(_current);
+            _current = profile;
+            targetGroup.Profiles.Add(profile);
         }
         else
         {
             // Move between groups if the selection changed.
-            var owner = OwnerOf(_current);
+            var owner = OwnerOf(profile);
             if (owner != null && owner != targetGroup)
             {
-                owner.Profiles.Remove(_current);
-                targetGroup.Profiles.Add(_current);
+                owner.Profiles.Remove(profile);
+                targetGroup.Profiles.Add(profile);
             }
         }
 
-        _current.Name = name;
-        _current.Host = host;
-        _current.Username = user;
-        _current.PasswordEnc = Crypto.Protect(PwdValue);
-        _current.Clipboard = ChkClip.IsChecked == true;
-        _current.Drives = ChkDrives.IsChecked == true;
-        _current.Printers = ChkPrn.IsChecked == true;
-        _current.FullScreen = ChkFull.IsChecked == true;
-        _current.AllMonitors = ChkMultimon.IsChecked == true;
-        _current.SkipCertWarn = ChkSkipCert.IsChecked == true;
+        profile.Name = name;
+        profile.Host = host;
+        profile.Username = user;
+        profile.PasswordEnc = Crypto.Protect(PwdValue);
+        profile.Clipboard = ChkClip.IsChecked == true;
+        profile.Drives = ChkDrives.IsChecked == true;
+        profile.Printers = ChkPrn.IsChecked == true;
+        profile.FullScreen = ChkFull.IsChecked == true;
+        profile.AllMonitors = ChkMultimon.IsChecked == true;
+        profile.SkipCertWarn = ChkSkipCert.IsChecked == true;
 
+        _current = profile; // restore in case re-entrancy nulled it
         ProfileStore.Save(_data);
         return true;
     }

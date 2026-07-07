@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace RdpLauncher;
 
@@ -50,9 +51,43 @@ public partial class WidgetWindow : Window
         if (Tree.SelectedItem is Profile p) RdpService.Connect(p);
     }
 
+    private void Tree_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        // Ensure the right-clicked item is selected so context menu actions target it.
+        var item = FindAncestor<TreeViewItem>(e.OriginalSource as DependencyObject);
+        if (item != null) item.IsSelected = true;
+    }
+
+    private static T? FindAncestor<T>(DependencyObject? obj) where T : DependencyObject
+    {
+        while (obj != null)
+        {
+            if (obj is T t) return t;
+            obj = VisualTreeHelper.GetParent(obj);
+        }
+        return null;
+    }
+
     private void MenuConnect_Click(object sender, RoutedEventArgs e)
     {
         if (Tree.SelectedItem is Profile p) RdpService.Connect(p);
+    }
+
+    private void MenuCopyCreds_Click(object sender, RoutedEventArgs e)
+    {
+        if (Tree.SelectedItem is not Profile p) return;
+        var pwd = Crypto.Unprotect(p.PasswordEnc);
+        Clipboard.SetText($"Host: {p.Host}\nUsername: {p.Username}\nPassword: {pwd}");
+    }
+
+    private void BtnRestore_Click(object sender, RoutedEventArgs e)
+    {
+        var wa = SystemParameters.WorkArea;
+        Width = 240;
+        Height = 440;
+        Left = wa.Right - Width - 12;
+        Top = wa.Top + 20;
+        SaveBounds();
     }
 
     private void BtnManager_Click(object sender, RoutedEventArgs e)

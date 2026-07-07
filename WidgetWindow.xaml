@@ -17,6 +17,9 @@
                      VerticalAlignment="Center" Margin="10,0"/>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                       VerticalAlignment="Center" Margin="0,0,4,0">
+            <Button x:Name="BtnRestore" Content="&#8635;" ToolTip="Restore default size and position"
+                    Width="22" Height="22" Foreground="White" Background="Transparent"
+                    BorderThickness="0" Click="BtnRestore_Click"/>
             <Button x:Name="BtnManager" Content="&#9881;" ToolTip="Open manager"
                     Width="22" Height="22" Foreground="White" Background="Transparent"
                     BorderThickness="0" Click="BtnManager_Click"/>
@@ -28,7 +31,8 @@
       </Border>
 
       <TreeView x:Name="Tree" BorderThickness="0" Padding="2"
-                MouseDoubleClick="Tree_MouseDoubleClick">
+                MouseDoubleClick="Tree_MouseDoubleClick"
+                PreviewMouseRightButtonDown="Tree_PreviewMouseRightButtonDown">
         <TreeView.Resources>
           <HierarchicalDataTemplate DataType="{x:Type local:Group}" ItemsSource="{Binding Profiles}">
             <StackPanel Orientation="Horizontal">
@@ -48,6 +52,7 @@
         <TreeView.ContextMenu>
           <ContextMenu>
             <MenuItem Header="Connect" Click="MenuConnect_Click"/>
+            <MenuItem Header="Copy credentials" Click="MenuCopyCreds_Click"/>
             <Separator/>
             <MenuItem Header="Open manager" Click="BtnManager_Click"/>
             <MenuItem Header="Hide to tray" Click="BtnHide_Click"/>
