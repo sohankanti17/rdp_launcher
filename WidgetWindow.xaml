@@ -5,7 +5,7 @@
         Title="RDP" Icon="app.ico"
         WindowStyle="None" ResizeMode="CanResizeWithGrip" Topmost="True"
         ShowInTaskbar="False" Width="240" Height="440"
-        WindowStartupLocation="Manual" Background="Transparent"
+        WindowStartupLocation="Manual" Background="Transparent" MinWidth="100" MinHeight="100"
         FontFamily="Segoe UI" FontSize="13">
   <Border Background="White" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="6">
     <DockPanel>
