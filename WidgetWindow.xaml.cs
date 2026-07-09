@@ -21,6 +21,7 @@ public partial class WidgetWindow : Window
     private double _restingOpacity = 1.0;
     private bool _isAnimating = false;
     private readonly DispatcherTimer _hideTimer = new() { Interval = TimeSpan.FromMilliseconds(800) };
+    private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromHours(6) };
 
     public WidgetWindow()
     {
@@ -54,6 +55,9 @@ public partial class WidgetWindow : Window
             MinHeight = 0;
             AnimateHeight(30);
         };
+
+        _updateTimer.Tick += (_, _) => CheckForUpdates();
+        _updateTimer.Start();
 
         ApplyTheme();
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
@@ -303,6 +307,7 @@ public partial class WidgetWindow : Window
         }
         else
         {
+            _updateTimer.Stop();
             SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         }
         base.OnClosing(e);

@@ -56,9 +56,9 @@ The main window for managing connections, credentials, and settings.
   and Password to clipboard for quick sharing with your team.
 - **Expand / collapse all groups** — toggle button in the widget header to collapse
   or expand all groups at once.
-- **Update notifications** — on startup, the app silently checks for a newer GitHub
-  release and shows an amber banner at the bottom of the widget if one is available.
-  Click the banner to open the releases page.
+- **Update notifications** — checks for a newer GitHub release on startup and every
+  6 hours while running, so you're notified even if the app is always on. Shows an
+  amber banner at the bottom of the widget; click it to open the releases page.
 - **Dark mode** — automatically matches your Windows dark/light theme, and updates
   instantly when you change it without restarting.
 - **Adjustable opacity** — scroll the mouse wheel on the widget header to set the
@@ -269,6 +269,10 @@ iscc RdpLauncher.iss      # produces RdpLauncherSetup.exe
 ---
 
 ## Changelog
+
+### v1.4.0
+**Features**
+- **Periodic update check** — in addition to the startup check, the app now re-checks GitHub every 6 hours while running. No restart needed to see a new release notification.
 
 ### v1.3.0
 **Features**
