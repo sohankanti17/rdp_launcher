@@ -7,12 +7,20 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Threading;
+using Microsoft.Win32;
 
 namespace RdpLauncher;
 
 public partial class WidgetWindow : Window
 {
     private bool _allExpanded = true;
+    private bool _autoHide = false;
+    private double _expandedHeight;
+    private double _restingOpacity = 1.0;
+    private bool _isAnimating = false;
+    private readonly DispatcherTimer _hideTimer = new() { Interval = TimeSpan.FromMilliseconds(800) };
 
     public WidgetWindow()
     {
@@ -27,7 +35,6 @@ public partial class WidgetWindow : Window
         }
         else
         {
-            // Dock to the right edge of the primary work area.
             var wa = SystemParameters.WorkArea;
             Width = 240;
             Height = Math.Min(460, wa.Height - 40);
@@ -35,8 +42,138 @@ public partial class WidgetWindow : Window
             Top = wa.Top + 20;
         }
 
+        _expandedHeight = Height;
+        _restingOpacity = Math.Clamp(s.Opacity, 0.3, 1.0);
+        Opacity = 1.0;  // always start fully visible
+        _autoHide = s.AutoHide;
+        UpdateAutoHideButton();
+
+        _hideTimer.Tick += (_, _) =>
+        {
+            _hideTimer.Stop();
+            MinHeight = 0;
+            AnimateHeight(30);
+        };
+
+        ApplyTheme();
+        SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
         CheckForUpdates();
     }
+
+    // ── Animation ────────────────────────────────────────────────────────────
+
+    private void AnimateHeight(double to)
+    {
+        _isAnimating = true;
+        var anim = new DoubleAnimation(Height, to, TimeSpan.FromMilliseconds(150))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+            FillBehavior = FillBehavior.Stop
+        };
+        anim.Completed += (_, _) =>
+        {
+            _isAnimating = false;
+            BeginAnimation(HeightProperty, null);
+            Height = to;
+            if (to > 50) MinHeight = 100;
+        };
+        BeginAnimation(HeightProperty, anim);
+    }
+
+    // ── Dark mode ────────────────────────────────────────────────────────────
+
+    private void OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+    {
+        if (e.Category == UserPreferenceCategory.General)
+            Dispatcher.Invoke(ApplyTheme);
+    }
+
+    private void ApplyTheme()
+    {
+        bool dark = IsWindowsDarkMode();
+        Resources["WidgetBg"]          = new SolidColorBrush(dark ? Color.FromRgb(30, 30, 30)   : Colors.White);
+        Resources["WidgetBorderBrush"] = new SolidColorBrush(dark ? Color.FromRgb(68, 68, 68)   : Color.FromRgb(204, 204, 204));
+        Resources["WidgetFg"]          = new SolidColorBrush(dark ? Colors.White                 : Color.FromRgb(30, 30, 30));
+        Resources["WidgetMuted"]       = new SolidColorBrush(dark ? Color.FromRgb(160, 160, 160) : Colors.Gray);
+    }
+
+    private static bool IsWindowsDarkMode()
+    {
+        try
+        {
+            var value = Registry.GetValue(
+                @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
+                "AppsUseLightTheme", 1);
+            return value is int i && i == 0;
+        }
+        catch { return false; }
+    }
+
+    // ── Opacity (mouse wheel on header) ─────────────────────────────────────
+
+    private void Header_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        _restingOpacity = Math.Clamp(_restingOpacity + (e.Delta > 0 ? 0.05 : -0.05), 0.3, 1.0);
+        SaveBounds();
+    }
+
+    // ── Auto-hide ────────────────────────────────────────────────────────────
+
+    private void BtnAutoHide_Click(object sender, RoutedEventArgs e)
+    {
+        _autoHide = !_autoHide;
+        if (!_autoHide)
+        {
+            _hideTimer.Stop();
+            MinHeight = 100;
+            if (Height < _expandedHeight) Height = _expandedHeight;
+        }
+        UpdateAutoHideButton();
+        SaveBounds();
+    }
+
+    private void UpdateAutoHideButton()
+    {
+        BtnAutoHide.Content  = _autoHide ? "⇤" : "⇥";
+        BtnAutoHide.ToolTip  = _autoHide ? "Disable auto-hide" : "Enable auto-hide";
+    }
+
+    protected override void OnMouseLeave(MouseEventArgs e)
+    {
+        if (_autoHide) _hideTimer.Start();
+        AnimateOpacity(Opacity, _restingOpacity);
+        base.OnMouseLeave(e);
+    }
+
+    protected override void OnMouseEnter(MouseEventArgs e)
+    {
+        _hideTimer.Stop();
+        AnimateOpacity(Opacity, 1.0);
+        if (_autoHide && Height < _expandedHeight)
+            AnimateHeight(_expandedHeight);
+        base.OnMouseEnter(e);
+    }
+
+    private void AnimateOpacity(double from, double to)
+    {
+        if (Math.Abs(from - to) < 0.01) return;
+        var anim = new DoubleAnimation(from, to, TimeSpan.FromMilliseconds(200))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+            FillBehavior = FillBehavior.Stop
+        };
+        anim.Completed += (_, _) => { BeginAnimation(OpacityProperty, null); Opacity = to; };
+        BeginAnimation(OpacityProperty, anim);
+    }
+
+    protected override void OnRenderSizeChanged(SizeChangedInfo info)
+    {
+        // Keep _expandedHeight in sync when user manually resizes (not during animation).
+        if (!_isAnimating && Height > 50) _expandedHeight = Height;
+        base.OnRenderSizeChanged(info);
+    }
+
+    // ── Update check ─────────────────────────────────────────────────────────
 
     private async void CheckForUpdates()
     {
@@ -58,7 +195,7 @@ public partial class WidgetWindow : Window
                 UpdateBanner.Visibility = Visibility.Visible;
             }
         }
-        catch { /* silently ignore — no internet, rate limit, etc. */ }
+        catch { }
     }
 
     private void UpdateBanner_Click(object sender, MouseButtonEventArgs e)
@@ -68,22 +205,7 @@ public partial class WidgetWindow : Window
         { UseShellExecute = true });
     }
 
-    private void EnsureOnScreen()
-    {
-        var va = SystemParameters.VirtualScreenWidth;
-        var vh = SystemParameters.VirtualScreenHeight;
-        if (Left < 0 || Top < 0 || Left > va - 40 || Top > vh - 40)
-        {
-            var wa = SystemParameters.WorkArea;
-            Left = wa.Right - Width - 12;
-            Top = wa.Top + 20;
-        }
-    }
-
-    private void Header_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ButtonState == MouseButtonState.Pressed) DragMove();
-    }
+    // ── Tree ─────────────────────────────────────────────────────────────────
 
     private void Tree_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
@@ -92,7 +214,6 @@ public partial class WidgetWindow : Window
 
     private void Tree_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
-        // Ensure the right-clicked item is selected so context menu actions target it.
         var item = FindAncestor<TreeViewItem>(e.OriginalSource as DependencyObject);
         if (item != null) item.IsSelected = true;
     }
@@ -131,13 +252,33 @@ public partial class WidgetWindow : Window
         BtnToggleExpand.ToolTip = _allExpanded ? "Collapse all groups" : "Expand all groups";
     }
 
+    // ── Header buttons ───────────────────────────────────────────────────────
+
+    private void EnsureOnScreen()
+    {
+        var va = SystemParameters.VirtualScreenWidth;
+        var vh = SystemParameters.VirtualScreenHeight;
+        if (Left < 0 || Top < 0 || Left > va - 40 || Top > vh - 40)
+        {
+            var wa = SystemParameters.WorkArea;
+            Left = wa.Right - Width - 12;
+            Top = wa.Top + 20;
+        }
+    }
+
+    private void Header_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ButtonState == MouseButtonState.Pressed) DragMove();
+    }
+
     private void BtnRestore_Click(object sender, RoutedEventArgs e)
     {
         var wa = SystemParameters.WorkArea;
-        Width = 240;
-        Height = 440;
+        Width = 240; Height = 440;
         Left = wa.Right - Width - 12;
         Top = wa.Top + 20;
+        _expandedHeight = 440;
+        MinHeight = 100;
         SaveBounds();
     }
 
@@ -150,14 +291,19 @@ public partial class WidgetWindow : Window
         Hide();
     }
 
+    // ── Lifetime ─────────────────────────────────────────────────────────────
+
     protected override void OnClosing(CancelEventArgs e)
     {
         SaveBounds();
-        // Alt+F4 shouldn't kill the app — hide to tray instead, unless we're exiting.
         if (!((App)Application.Current).IsExiting)
         {
             e.Cancel = true;
             Hide();
+        }
+        else
+        {
+            SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
         }
         base.OnClosing(e);
     }
@@ -174,7 +320,10 @@ public partial class WidgetWindow : Window
         SettingsStore.Save(new WidgetSettings
         {
             HasPosition = true,
-            X = Left, Y = Top, W = Width, H = Height
+            X = Left, Y = Top, W = Width,
+            H = Height > 50 ? Height : _expandedHeight,  // never save the collapsed height
+            Opacity = _restingOpacity,
+            AutoHide = _autoHide
         });
     }
 }

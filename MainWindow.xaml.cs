@@ -188,6 +188,8 @@ public partial class MainWindow : Window
         SetPwd("");
         CmbGroup.SelectedItem = target;
         ChkClip.IsChecked = true;
+        ChkFull.IsChecked = true;
+        ChkSkipCert.IsChecked = true;
         TxtName.Focus();
     }
 

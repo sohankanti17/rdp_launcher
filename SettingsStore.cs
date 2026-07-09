@@ -10,6 +10,8 @@ public class WidgetSettings
     public double Y { get; set; }
     public double W { get; set; } = 240;
     public double H { get; set; } = 440;
+    public double Opacity { get; set; } = 1.0;
+    public bool AutoHide { get; set; } = false;
 }
 
 public static class SettingsStore

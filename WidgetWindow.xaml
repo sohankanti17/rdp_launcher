@@ -5,18 +5,32 @@
         Title="RDP" Icon="app.ico"
         WindowStyle="None" ResizeMode="CanResizeWithGrip" Topmost="True"
         ShowInTaskbar="False" Width="240" Height="440"
-        WindowStartupLocation="Manual" Background="Transparent" MinWidth="100" MinHeight="100"
+        WindowStartupLocation="Manual" Background="Transparent" AllowsTransparency="True"
+        MinWidth="100" MinHeight="100"
         FontFamily="Segoe UI" FontSize="13">
-  <Border Background="White" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="6">
+  <Window.Resources>
+    <SolidColorBrush x:Key="WidgetBg"           Color="White"/>
+    <SolidColorBrush x:Key="WidgetBorderBrush"  Color="#CCCCCC"/>
+    <SolidColorBrush x:Key="WidgetFg"           Color="#1E1E1E"/>
+    <SolidColorBrush x:Key="WidgetMuted"        Color="Gray"/>
+  </Window.Resources>
+  <Border x:Name="OuterBorder"
+          Background="{DynamicResource WidgetBg}"
+          BorderBrush="{DynamicResource WidgetBorderBrush}"
+          BorderThickness="1" CornerRadius="6">
     <DockPanel>
       <!-- Drag handle / mini header -->
       <Border DockPanel.Dock="Top" Background="#2563EB" Height="26"
-              MouseLeftButtonDown="Header_MouseDown">
+              MouseLeftButtonDown="Header_MouseDown"
+              MouseWheel="Header_MouseWheel">
         <Grid>
           <TextBlock Text="RDP" Foreground="White" FontWeight="Bold"
                      VerticalAlignment="Center" Margin="10,0"/>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                       VerticalAlignment="Center" Margin="0,0,4,0">
+            <Button x:Name="BtnAutoHide" Content="&#8677;" ToolTip="Enable auto-hide"
+                    Width="22" Height="22" Foreground="White" Background="Transparent"
+                    BorderThickness="0" Click="BtnAutoHide_Click"/>
             <Button x:Name="BtnToggleExpand" Content="&#9660;" ToolTip="Collapse all groups"
                     Width="22" Height="22" Foreground="White" Background="Transparent"
                     BorderThickness="0" Click="BtnToggleExpand_Click"/>
@@ -42,13 +56,16 @@
       </Border>
 
       <TreeView x:Name="Tree" BorderThickness="0" Padding="2"
+                Background="Transparent"
+                Foreground="{DynamicResource WidgetFg}"
                 MouseDoubleClick="Tree_MouseDoubleClick"
                 PreviewMouseRightButtonDown="Tree_PreviewMouseRightButtonDown">
         <TreeView.Resources>
           <HierarchicalDataTemplate DataType="{x:Type local:Group}" ItemsSource="{Binding Profiles}">
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
-              <TextBlock Text="{Binding Profiles.Count, StringFormat=' ({0})'}" Foreground="Gray"/>
+              <TextBlock Text="{Binding Profiles.Count, StringFormat=' ({0})'}"
+                         Foreground="{DynamicResource WidgetMuted}"/>
             </StackPanel>
           </HierarchicalDataTemplate>
           <DataTemplate DataType="{x:Type local:Profile}">
@@ -58,6 +75,7 @@
         <TreeView.ItemContainerStyle>
           <Style TargetType="TreeViewItem">
             <Setter Property="IsExpanded" Value="True"/>
+            <Setter Property="Foreground" Value="{DynamicResource WidgetFg}"/>
           </Style>
         </TreeView.ItemContainerStyle>
         <TreeView.ContextMenu>

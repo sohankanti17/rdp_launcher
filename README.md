@@ -59,6 +59,13 @@ The main window for managing connections, credentials, and settings.
 - **Update notifications** — on startup, the app silently checks for a newer GitHub
   release and shows an amber banner at the bottom of the widget if one is available.
   Click the banner to open the releases page.
+- **Dark mode** — automatically matches your Windows dark/light theme, and updates
+  instantly when you change it without restarting.
+- **Adjustable opacity** — scroll the mouse wheel on the widget header to set the
+  resting opacity (30%–100%). The widget always fades to fully visible on hover and
+  fades back when the mouse leaves. Setting is remembered between sessions.
+- **Auto-hide** — ⇥ button in the header collapses the widget to just the header
+  bar when the mouse leaves (with a smooth slide animation), and expands again on hover.
 
 ---
 
@@ -262,6 +269,13 @@ iscc RdpLauncher.iss      # produces RdpLauncherSetup.exe
 ---
 
 ## Changelog
+
+### v1.3.0
+**Features**
+- **Dark mode** — automatically matches the Windows dark/light theme and updates live when you switch themes.
+- **Adjustable opacity** — scroll the mouse wheel on the widget header to set resting opacity (30%–100%). Widget fades to full opacity on hover, fades back on mouse leave. Saved between sessions.
+- **Auto-hide** — ⇥ button collapses the widget to just the header bar on mouse leave (smooth slide animation); expands on hover. ⇤ to disable.
+- **Smarter new VM defaults** — Share Clipboard, Full Screen, and Skip Certificate Warning are now checked by default when adding a new VM.
 
 ### v1.2.0
 **Features**
