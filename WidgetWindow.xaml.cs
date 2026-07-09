@@ -1,4 +1,8 @@
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Reflection;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -30,6 +34,38 @@ public partial class WidgetWindow : Window
             Left = wa.Right - Width - 12;
             Top = wa.Top + 20;
         }
+
+        CheckForUpdates();
+    }
+
+    private async void CheckForUpdates()
+    {
+        try
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "RdpLauncher");
+            var json = await client.GetStringAsync(
+                "https://api.github.com/repos/sohankanti17/rdp_launcher/releases/latest");
+
+            using var doc = JsonDocument.Parse(json);
+            var tag = doc.RootElement.GetProperty("tag_name").GetString() ?? "";
+            var latest = Version.Parse(tag.TrimStart('v'));
+            var current = Assembly.GetExecutingAssembly().GetName().Version!;
+
+            if (latest > current)
+            {
+                UpdateText.Text = $"⬆ v{latest.ToString(3)} available — click to download";
+                UpdateBanner.Visibility = Visibility.Visible;
+            }
+        }
+        catch { /* silently ignore — no internet, rate limit, etc. */ }
+    }
+
+    private void UpdateBanner_Click(object sender, MouseButtonEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo(
+            "https://github.com/sohankanti17/rdp_launcher/releases/latest")
+        { UseShellExecute = true });
     }
 
     private void EnsureOnScreen()

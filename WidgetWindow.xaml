@@ -33,6 +33,14 @@
         </Grid>
       </Border>
 
+      <!-- Update notification — hidden until a newer release is detected -->
+      <Border x:Name="UpdateBanner" DockPanel.Dock="Bottom"
+              Background="#D97706" Visibility="Collapsed"
+              Cursor="Hand" MouseLeftButtonDown="UpdateBanner_Click" Padding="8,5">
+        <TextBlock x:Name="UpdateText" Foreground="White" FontSize="11"
+                   TextWrapping="Wrap"/>
+      </Border>
+
       <TreeView x:Name="Tree" BorderThickness="0" Padding="2"
                 MouseDoubleClick="Tree_MouseDoubleClick"
                 PreviewMouseRightButtonDown="Tree_PreviewMouseRightButtonDown">

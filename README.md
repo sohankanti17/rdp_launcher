@@ -56,6 +56,9 @@ The main window for managing connections, credentials, and settings.
   and Password to clipboard for quick sharing with your team.
 - **Expand / collapse all groups** — toggle button in the widget header to collapse
   or expand all groups at once.
+- **Update notifications** — on startup, the app silently checks for a newer GitHub
+  release and shows an amber banner at the bottom of the widget if one is available.
+  Click the banner to open the releases page.
 
 ---
 
@@ -259,6 +262,13 @@ iscc RdpLauncher.iss      # produces RdpLauncherSetup.exe
 ---
 
 ## Changelog
+
+### v1.2.0
+**Features**
+- **Update notifications** — on startup, checks GitHub for a newer release and shows an amber banner at the bottom of the widget. Click it to open the download page.
+
+**Bug fixes**
+- **Minimum widget size** — the widget can no longer be resized smaller than 100×100px.
 
 ### v1.1.0
 **Features**
