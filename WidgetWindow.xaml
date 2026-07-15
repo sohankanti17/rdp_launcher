@@ -14,80 +14,93 @@
     <SolidColorBrush x:Key="WidgetFg"           Color="#1E1E1E"/>
     <SolidColorBrush x:Key="WidgetMuted"        Color="Gray"/>
   </Window.Resources>
-  <Border x:Name="OuterBorder"
-          Background="{DynamicResource WidgetBg}"
-          BorderBrush="{DynamicResource WidgetBorderBrush}"
-          BorderThickness="1" CornerRadius="6">
-    <DockPanel>
-      <!-- Drag handle / mini header -->
-      <Border DockPanel.Dock="Top" Background="#2563EB" Height="26"
-              MouseLeftButtonDown="Header_MouseDown"
-              MouseWheel="Header_MouseWheel">
-        <Grid>
-          <TextBlock Text="RDP" Foreground="White" FontWeight="Bold"
-                     VerticalAlignment="Center" Margin="10,0"/>
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                      VerticalAlignment="Center" Margin="0,0,4,0">
-            <Button x:Name="BtnAutoHide" Content="&#8677;" ToolTip="Enable auto-hide"
-                    Width="22" Height="22" Foreground="White" Background="Transparent"
-                    BorderThickness="0" Click="BtnAutoHide_Click"/>
-            <Button x:Name="BtnToggleExpand" Content="&#9660;" ToolTip="Collapse all groups"
-                    Width="22" Height="22" Foreground="White" Background="Transparent"
-                    BorderThickness="0" Click="BtnToggleExpand_Click"/>
-            <Button x:Name="BtnRestore" Content="&#8635;" ToolTip="Restore default size and position"
-                    Width="22" Height="22" Foreground="White" Background="Transparent"
-                    BorderThickness="0" Click="BtnRestore_Click"/>
-            <Button x:Name="BtnManager" Content="&#9881;" ToolTip="Open manager"
-                    Width="22" Height="22" Foreground="White" Background="Transparent"
-                    BorderThickness="0" Click="BtnManager_Click"/>
-            <Button x:Name="BtnHide" Content="&#215;" ToolTip="Hide to tray"
-                    Width="22" Height="22" Foreground="White" Background="Transparent"
-                    BorderThickness="0" Click="BtnHide_Click"/>
-          </StackPanel>
-        </Grid>
-      </Border>
 
-      <!-- Update notification — hidden until a newer release is detected -->
-      <Border x:Name="UpdateBanner" DockPanel.Dock="Bottom"
-              Background="#D97706" Visibility="Collapsed"
-              Cursor="Hand" MouseLeftButtonDown="UpdateBanner_Click" Padding="8,5">
-        <TextBlock x:Name="UpdateText" Foreground="White" FontSize="11"
-                   TextWrapping="Wrap"/>
-      </Border>
-
-      <TreeView x:Name="Tree" BorderThickness="0" Padding="2"
-                Background="Transparent"
-                Foreground="{DynamicResource WidgetFg}"
-                MouseDoubleClick="Tree_MouseDoubleClick"
-                PreviewMouseRightButtonDown="Tree_PreviewMouseRightButtonDown">
-        <TreeView.Resources>
-          <HierarchicalDataTemplate DataType="{x:Type local:Group}" ItemsSource="{Binding Profiles}">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
-              <TextBlock Text="{Binding Profiles.Count, StringFormat=' ({0})'}"
-                         Foreground="{DynamicResource WidgetMuted}"/>
+  <!-- Root grid: OuterBorder (scaled during bubble) + BubbleContent (never scaled) -->
+  <Grid>
+    <Border x:Name="OuterBorder"
+            Background="{DynamicResource WidgetBg}"
+            BorderBrush="{DynamicResource WidgetBorderBrush}"
+            BorderThickness="1" CornerRadius="6">
+      <DockPanel x:Name="MainContent">
+        <!-- Drag handle / mini header -->
+        <Border DockPanel.Dock="Top" Background="#2563EB" Height="26"
+                MouseLeftButtonDown="Header_MouseDown"
+                MouseWheel="Header_MouseWheel">
+          <Grid>
+            <TextBlock Text="RDP" Foreground="White" FontWeight="Bold"
+                       VerticalAlignment="Center" Margin="10,0"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                        VerticalAlignment="Center" Margin="0,0,4,0">
+              <Button x:Name="BtnAutoHide" Content="&#8677;" ToolTip="Enable auto-hide"
+                      Width="22" Height="22" Foreground="White" Background="Transparent"
+                      BorderThickness="0" Click="BtnAutoHide_Click"/>
+              <Button x:Name="BtnToggleExpand" Content="&#9660;" ToolTip="Collapse all groups"
+                      Width="22" Height="22" Foreground="White" Background="Transparent"
+                      BorderThickness="0" Click="BtnToggleExpand_Click"/>
+              <Button x:Name="BtnRestore" Content="&#8635;" ToolTip="Restore default size and position"
+                      Width="22" Height="22" Foreground="White" Background="Transparent"
+                      BorderThickness="0" Click="BtnRestore_Click"/>
+              <Button x:Name="BtnManager" Content="&#9881;" ToolTip="Open manager"
+                      Width="22" Height="22" Foreground="White" Background="Transparent"
+                      BorderThickness="0" Click="BtnManager_Click"/>
+              <Button x:Name="BtnHide" Content="&#215;" ToolTip="Hide to tray"
+                      Width="22" Height="22" Foreground="White" Background="Transparent"
+                      BorderThickness="0" Click="BtnHide_Click"/>
             </StackPanel>
-          </HierarchicalDataTemplate>
-          <DataTemplate DataType="{x:Type local:Profile}">
-            <TextBlock Text="{Binding Name}"/>
-          </DataTemplate>
-        </TreeView.Resources>
-        <TreeView.ItemContainerStyle>
-          <Style TargetType="TreeViewItem">
-            <Setter Property="IsExpanded" Value="True"/>
-            <Setter Property="Foreground" Value="{DynamicResource WidgetFg}"/>
-          </Style>
-        </TreeView.ItemContainerStyle>
-        <TreeView.ContextMenu>
-          <ContextMenu>
-            <MenuItem Header="Connect" Click="MenuConnect_Click"/>
-            <MenuItem Header="Copy credentials" Click="MenuCopyCreds_Click"/>
-            <Separator/>
-            <MenuItem Header="Open manager" Click="BtnManager_Click"/>
-            <MenuItem Header="Hide to tray" Click="BtnHide_Click"/>
-          </ContextMenu>
-        </TreeView.ContextMenu>
-      </TreeView>
-    </DockPanel>
-  </Border>
+          </Grid>
+        </Border>
+
+        <!-- Update notification — hidden until a newer release is detected -->
+        <Border x:Name="UpdateBanner" DockPanel.Dock="Bottom"
+                Background="#D97706" Visibility="Collapsed"
+                Cursor="Hand" MouseLeftButtonDown="UpdateBanner_Click" Padding="8,5">
+          <TextBlock x:Name="UpdateText" Foreground="White" FontSize="11"
+                     TextWrapping="Wrap"/>
+        </Border>
+
+        <TreeView x:Name="Tree" BorderThickness="0" Padding="2"
+                  Background="Transparent"
+                  Foreground="{DynamicResource WidgetFg}"
+                  MouseDoubleClick="Tree_MouseDoubleClick"
+                  PreviewMouseRightButtonDown="Tree_PreviewMouseRightButtonDown">
+          <TreeView.Resources>
+            <HierarchicalDataTemplate DataType="{x:Type local:Group}" ItemsSource="{Binding Profiles}">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Profiles.Count, StringFormat=' ({0})'}"
+                           Foreground="{DynamicResource WidgetMuted}"/>
+              </StackPanel>
+            </HierarchicalDataTemplate>
+            <DataTemplate DataType="{x:Type local:Profile}">
+              <TextBlock Text="{Binding Name}"/>
+            </DataTemplate>
+          </TreeView.Resources>
+          <TreeView.ItemContainerStyle>
+            <Style TargetType="TreeViewItem">
+              <Setter Property="IsExpanded" Value="True"/>
+              <Setter Property="Foreground" Value="{DynamicResource WidgetFg}"/>
+            </Style>
+          </TreeView.ItemContainerStyle>
+          <TreeView.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="Connect" Click="MenuConnect_Click"/>
+              <MenuItem Header="Copy credentials" Click="MenuCopyCreds_Click"/>
+              <Separator/>
+              <MenuItem Header="Open manager" Click="BtnManager_Click"/>
+              <MenuItem Header="Hide to tray" Click="BtnHide_Click"/>
+            </ContextMenu>
+          </TreeView.ContextMenu>
+        </TreeView>
+      </DockPanel>
+    </Border>
+
+    <!-- Bubble label — outside OuterBorder so it is NOT affected by the ScaleTransform.
+         Positioned at top-right to overlay the bubble circle. -->
+    <Grid x:Name="BubbleContent" Visibility="Collapsed"
+          Width="54" Height="54" Cursor="Hand"
+          HorizontalAlignment="Right" VerticalAlignment="Top">
+      <TextBlock Text="RDP" Foreground="White" FontWeight="Bold" FontSize="13"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
+  </Grid>
 </Window>

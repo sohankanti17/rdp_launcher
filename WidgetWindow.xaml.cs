@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
@@ -22,6 +23,10 @@ public partial class WidgetWindow : Window
     private bool _isAnimating = false;
     private readonly DispatcherTimer _hideTimer = new() { Interval = TimeSpan.FromMilliseconds(800) };
     private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromHours(6) };
+    private double _expandedWidth;
+    private double _expandedLeft;
+    private bool _isBubbled;
+    private const double BubbleSize = 54;
 
     public WidgetWindow()
     {
@@ -44,6 +49,8 @@ public partial class WidgetWindow : Window
         }
 
         _expandedHeight = Height;
+        _expandedWidth = Width;
+        _expandedLeft = Left;
         _restingOpacity = Math.Clamp(s.Opacity, 0.3, 1.0);
         Opacity = 1.0;  // always start fully visible
         _autoHide = s.AutoHide;
@@ -52,8 +59,7 @@ public partial class WidgetWindow : Window
         _hideTimer.Tick += (_, _) =>
         {
             _hideTimer.Stop();
-            MinHeight = 0;
-            AnimateHeight(30);
+            if (!_isBubbled) CollapseToBubble();
         };
 
         _updateTimer.Tick += (_, _) => CheckForUpdates();
@@ -129,8 +135,14 @@ public partial class WidgetWindow : Window
         if (!_autoHide)
         {
             _hideTimer.Stop();
-            MinHeight = 100;
-            if (Height < _expandedHeight) Height = _expandedHeight;
+            if (_isBubbled)
+                ExpandFromBubble();
+            else
+            {
+                MinHeight = 100;
+                MinWidth = 100;
+                if (Height < _expandedHeight) Height = _expandedHeight;
+            }
         }
         UpdateAutoHideButton();
         SaveBounds();
@@ -144,7 +156,7 @@ public partial class WidgetWindow : Window
 
     protected override void OnMouseLeave(MouseEventArgs e)
     {
-        if (_autoHide) _hideTimer.Start();
+        if (_autoHide && !_isBubbled) _hideTimer.Start();
         AnimateOpacity(Opacity, _restingOpacity);
         base.OnMouseLeave(e);
     }
@@ -153,9 +165,14 @@ public partial class WidgetWindow : Window
     {
         _hideTimer.Stop();
         AnimateOpacity(Opacity, 1.0);
-        if (_autoHide && Height < _expandedHeight)
-            AnimateHeight(_expandedHeight);
         base.OnMouseEnter(e);
+    }
+
+    protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+    {
+        if (_isBubbled && !_isAnimating)
+            ExpandFromBubble();
+        base.OnMouseLeftButtonDown(e);
     }
 
     private void AnimateOpacity(double from, double to)
@@ -170,10 +187,115 @@ public partial class WidgetWindow : Window
         BeginAnimation(OpacityProperty, anim);
     }
 
+    // ── WM_NCHITTEST hook — makes the transparent window area click-through when bubbled ──
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)?.AddHook(WindowProc);
+    }
+
+    private IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        const int WM_NCHITTEST = 0x0084;
+        const int HTTRANSPARENT = -1;
+
+        if (msg == WM_NCHITTEST && _isBubbled)
+        {
+            // lParam is screen coordinates in physical pixels
+            int screenX = unchecked((short)(lParam.ToInt32() & 0xFFFF));
+            int screenY = unchecked((short)((lParam.ToInt32() >> 16) & 0xFFFF));
+
+            var dpi = VisualTreeHelper.GetDpi(this);
+            int bLeft  = (int)((Left + Width - BubbleSize) * dpi.DpiScaleX);
+            int bTop   = (int)(Top  * dpi.DpiScaleY);
+            int bSize  = (int)(BubbleSize * dpi.DpiScaleX);
+
+            bool inBubble = screenX >= bLeft && screenX < bLeft + bSize
+                         && screenY >= bTop  && screenY < bTop  + bSize;
+            if (!inBubble) { handled = true; return new IntPtr(HTTRANSPARENT); }
+        }
+        return IntPtr.Zero;
+    }
+
+    private void CollapseToBubble()
+    {
+        _isAnimating = true;
+        _isBubbled = true;
+
+        // Go blue + round immediately so widget shrinks as a filled circle
+        OuterBorder.Background = new SolidColorBrush(Color.FromRgb(37, 99, 235));
+        OuterBorder.BorderThickness = new Thickness(0);
+        // CornerRadius must compensate for the ScaleTransform so the circle looks round.
+        // Visual radius = CornerRadius * scale; to get BubbleSize/2 visual radius:
+        // CornerRadius = (BubbleSize/2) / scale = Height/2 (using the smaller scale axis)
+        OuterBorder.CornerRadius = new CornerRadius(Math.Max(Width, Height) / 2);
+        MainContent.Visibility = Visibility.Collapsed;
+        ResizeMode = ResizeMode.NoResize;
+
+        // ScaleTransform anchored top-right: pure GPU, window never resizes during animation
+        double scaleX = BubbleSize / Width;
+        double scaleY = BubbleSize / Height;
+        var scale = new ScaleTransform(1, 1);
+        OuterBorder.RenderTransformOrigin = new Point(1, 0);
+        OuterBorder.RenderTransform = scale;
+
+        var ease = new CubicEase { EasingMode = EasingMode.EaseInOut };
+        var dur = TimeSpan.FromMilliseconds(280);
+        var animSX = new DoubleAnimation(1, scaleX, dur) { EasingFunction = ease, FillBehavior = FillBehavior.Stop };
+        var animSY = new DoubleAnimation(1, scaleY, dur) { EasingFunction = ease, FillBehavior = FillBehavior.Stop };
+
+        animSX.Completed += (_, _) =>
+        {
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, null); scale.ScaleX = scaleX;
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, null); scale.ScaleY = scaleY;
+            BubbleContent.Visibility = Visibility.Visible;
+            _isAnimating = false;
+        };
+
+        scale.BeginAnimation(ScaleTransform.ScaleXProperty, animSX);
+        scale.BeginAnimation(ScaleTransform.ScaleYProperty, animSY);
+    }
+
+    private void ExpandFromBubble()
+    {
+        _isAnimating = true;
+        _isBubbled = false;  // cleared before animation so WM_NCHITTEST stops blocking
+
+        BubbleContent.Visibility = Visibility.Collapsed;
+        OuterBorder.SetResourceReference(Border.BackgroundProperty, "WidgetBg");
+        OuterBorder.BorderThickness = new Thickness(1);
+        OuterBorder.CornerRadius = new CornerRadius(6);
+        ResizeMode = ResizeMode.CanResizeWithGrip;
+        MainContent.Visibility = Visibility.Visible;
+
+        // Window is already at full size — just animate the ScaleTransform back to 1
+        // No Win32 resize = no flash, no flicker
+        var scale = OuterBorder.RenderTransform as ScaleTransform
+                    ?? new ScaleTransform(BubbleSize / Width, BubbleSize / Height);
+        OuterBorder.RenderTransformOrigin = new Point(1, 0);
+        OuterBorder.RenderTransform = scale;
+
+        double fromX = scale.ScaleX, fromY = scale.ScaleY;
+        var ease = new CubicEase { EasingMode = EasingMode.EaseInOut };
+        var dur = TimeSpan.FromMilliseconds(280);
+        var animSX = new DoubleAnimation(fromX, 1, dur) { EasingFunction = ease, FillBehavior = FillBehavior.Stop };
+        var animSY = new DoubleAnimation(fromY, 1, dur) { EasingFunction = ease, FillBehavior = FillBehavior.Stop };
+
+        animSX.Completed += (_, _) =>
+        {
+            OuterBorder.RenderTransform = null;
+            _isAnimating = false;
+        };
+
+        scale.BeginAnimation(ScaleTransform.ScaleXProperty, animSX);
+        scale.BeginAnimation(ScaleTransform.ScaleYProperty, animSY);
+    }
+
     protected override void OnRenderSizeChanged(SizeChangedInfo info)
     {
-        // Keep _expandedHeight in sync when user manually resizes (not during animation).
         if (!_isAnimating && Height > 50) _expandedHeight = Height;
+        if (!_isAnimating && Width > 100) _expandedWidth = Width;
         base.OnRenderSizeChanged(info);
     }
 
@@ -278,11 +400,18 @@ public partial class WidgetWindow : Window
     private void BtnRestore_Click(object sender, RoutedEventArgs e)
     {
         var wa = SystemParameters.WorkArea;
+        _isBubbled = false;
+        MainContent.Visibility = Visibility.Visible;
+        BubbleContent.Visibility = Visibility.Collapsed;
+        OuterBorder.CornerRadius = new CornerRadius(6);
         Width = 240; Height = 440;
         Left = wa.Right - Width - 12;
         Top = wa.Top + 20;
         _expandedHeight = 440;
+        _expandedWidth = 240;
+        _expandedLeft = Left;
         MinHeight = 100;
+        MinWidth = 100;
         SaveBounds();
     }
 
@@ -325,8 +454,7 @@ public partial class WidgetWindow : Window
         SettingsStore.Save(new WidgetSettings
         {
             HasPosition = true,
-            X = Left, Y = Top, W = Width,
-            H = Height > 50 ? Height : _expandedHeight,  // never save the collapsed height
+            X = Left, Y = Top, W = Width, H = Height,
             Opacity = _restingOpacity,
             AutoHide = _autoHide
         });

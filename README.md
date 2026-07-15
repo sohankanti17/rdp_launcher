@@ -64,8 +64,8 @@ The main window for managing connections, credentials, and settings.
 - **Adjustable opacity** — scroll the mouse wheel on the widget header to set the
   resting opacity (30%–100%). The widget always fades to fully visible on hover and
   fades back when the mouse leaves. Setting is remembered between sessions.
-- **Auto-hide** — ⇥ button in the header collapses the widget to just the header
-  bar when the mouse leaves (with a smooth slide animation), and expands again on hover.
+- **Auto-hide** — ⇥ button in the header collapses the widget to a small blue circle
+  when the mouse leaves (smooth animation). Click the bubble to expand it again.
 
 ---
 
@@ -270,6 +270,10 @@ iscc RdpLauncher.iss      # produces RdpLauncherSetup.exe
 
 ## Changelog
 
+### v1.4.1
+**Features**
+- **Bubble auto-hide** — when auto-hide is enabled, the widget now collapses to a small blue circle (bubble) instead of a header strip, with a smooth scale animation. Click the bubble to expand. Hover still fades it to full opacity as a visual cue.
+
 ### v1.4.0
 **Features**
 - **Periodic update check** — in addition to the startup check, the app now re-checks GitHub every 6 hours while running. No restart needed to see a new release notification.
@@ -278,7 +282,7 @@ iscc RdpLauncher.iss      # produces RdpLauncherSetup.exe
 **Features**
 - **Dark mode** — automatically matches the Windows dark/light theme and updates live when you switch themes.
 - **Adjustable opacity** — scroll the mouse wheel on the widget header to set resting opacity (30%–100%). Widget fades to full opacity on hover, fades back on mouse leave. Saved between sessions.
-- **Auto-hide** — ⇥ button collapses the widget to just the header bar on mouse leave (smooth slide animation); expands on hover. ⇤ to disable.
+- **Auto-hide** — ⇥ button collapses the widget to just the header bar on mouse leave; expands on hover. ⇤ to disable. (Upgraded to bubble in v1.4.1.)
 - **Smarter new VM defaults** — Share Clipboard, Full Screen, and Skip Certificate Warning are now checked by default when adding a new VM.
 
 ### v1.2.0
