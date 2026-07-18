@@ -3,10 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:RdpLauncher"
         Title="RDP" Icon="app.ico"
-        WindowStyle="None" ResizeMode="CanResizeWithGrip" Topmost="True"
-        ShowInTaskbar="False" Width="240" Height="440"
+        WindowStyle="None" ResizeMode="NoResize" Topmost="True"
+        ShowInTaskbar="False" Width="260" SizeToContent="Height" MinHeight="60"
         WindowStartupLocation="Manual" Background="Transparent" AllowsTransparency="True"
-        MinWidth="100" MinHeight="100"
         FontFamily="Segoe UI" FontSize="13">
   <Window.Resources>
     <SolidColorBrush x:Key="WidgetBg"           Color="White"/>
@@ -15,16 +14,32 @@
     <SolidColorBrush x:Key="WidgetMuted"        Color="Gray"/>
   </Window.Resources>
 
-  <!-- Root grid: OuterBorder (scaled during bubble) + BubbleContent (never scaled) -->
+  <!--
+    Layout: [Tab 20px] [Body 240px]
+    Tab is always visible — rounded on the left (outward) side, flush on the right (body) side.
+    When docked: window slides right until only the 20px tab is visible at the screen edge.
+    Body starts at Margin="20,0,0,0" so it is fully off-screen when docked.
+  -->
   <Grid>
-    <Border x:Name="OuterBorder"
+    <!-- Pull-tab: permanent left-side handle -->
+    <Border x:Name="PullTab" Width="20"
+            HorizontalAlignment="Left" VerticalAlignment="Center" Height="72"
+            Background="#CC2563EB" CornerRadius="8,0,0,8" Cursor="Hand"
+            MouseLeftButtonDown="PullTab_Click">
+      <TextBlock x:Name="PullTabArrow" Text="&#9654;" Foreground="White"
+                 FontSize="9" FontWeight="Bold"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Border>
+
+    <!-- Main widget body — left margin keeps it to the right of the tab -->
+    <Border x:Name="OuterBorder" Margin="20,0,0,0"
             Background="{DynamicResource WidgetBg}"
             BorderBrush="{DynamicResource WidgetBorderBrush}"
-            BorderThickness="1" CornerRadius="6">
+            BorderThickness="1,1,1,1" CornerRadius="0,6,6,0">
       <DockPanel x:Name="MainContent">
-        <!-- Drag handle / mini header -->
+
+        <!-- Header — no drag, opacity via mouse wheel -->
         <Border DockPanel.Dock="Top" Background="#2563EB" Height="26"
-                MouseLeftButtonDown="Header_MouseDown"
                 MouseWheel="Header_MouseWheel">
           <Grid>
             <TextBlock Text="RDP" Foreground="White" FontWeight="Bold"
@@ -37,9 +52,6 @@
               <Button x:Name="BtnToggleExpand" Content="&#9660;" ToolTip="Collapse all groups"
                       Width="22" Height="22" Foreground="White" Background="Transparent"
                       BorderThickness="0" Click="BtnToggleExpand_Click"/>
-              <Button x:Name="BtnRestore" Content="&#8635;" ToolTip="Restore default size and position"
-                      Width="22" Height="22" Foreground="White" Background="Transparent"
-                      BorderThickness="0" Click="BtnRestore_Click"/>
               <Button x:Name="BtnManager" Content="&#9881;" ToolTip="Open manager"
                       Width="22" Height="22" Foreground="White" Background="Transparent"
                       BorderThickness="0" Click="BtnManager_Click"/>
@@ -50,7 +62,7 @@
           </Grid>
         </Border>
 
-        <!-- Update notification — hidden until a newer release is detected -->
+        <!-- Update notification banner -->
         <Border x:Name="UpdateBanner" DockPanel.Dock="Bottom"
                 Background="#D97706" Visibility="Collapsed"
                 Cursor="Hand" MouseLeftButtonDown="UpdateBanner_Click" Padding="8,5">
@@ -61,6 +73,8 @@
         <TreeView x:Name="Tree" BorderThickness="0" Padding="2"
                   Background="Transparent"
                   Foreground="{DynamicResource WidgetFg}"
+                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   MouseDoubleClick="Tree_MouseDoubleClick"
                   PreviewMouseRightButtonDown="Tree_PreviewMouseRightButtonDown">
           <TreeView.Resources>
@@ -91,16 +105,8 @@
             </ContextMenu>
           </TreeView.ContextMenu>
         </TreeView>
+
       </DockPanel>
     </Border>
-
-    <!-- Bubble label — outside OuterBorder so it is NOT affected by the ScaleTransform.
-         Positioned at top-right to overlay the bubble circle. -->
-    <Grid x:Name="BubbleContent" Visibility="Collapsed"
-          Width="54" Height="54" Cursor="Hand"
-          HorizontalAlignment="Right" VerticalAlignment="Top">
-      <TextBlock Text="RDP" Foreground="White" FontWeight="Bold" FontSize="13"
-                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
-    </Grid>
   </Grid>
 </Window>

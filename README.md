@@ -64,8 +64,10 @@ The main window for managing connections, credentials, and settings.
 - **Adjustable opacity** — scroll the mouse wheel on the widget header to set the
   resting opacity (30%–100%). The widget always fades to fully visible on hover and
   fades back when the mouse leaves. Setting is remembered between sessions.
-- **Auto-hide** — ⇥ button in the header collapses the widget to a small blue circle
-  when the mouse leaves (smooth animation). Click the bubble to expand it again.
+- **Auto-hide** — ⇥ button in the header slides the widget to the right screen edge
+  when the mouse leaves, leaving a small blue pull-tab visible. Click the tab (or
+  anywhere on the widget) to slide it back out. The tab fades to 50% opacity at
+  rest and brightens on hover.
 
 ---
 
@@ -270,9 +272,13 @@ iscc RdpLauncher.iss      # produces RdpLauncherSetup.exe
 
 ## Changelog
 
+### v1.5.0
+**Features**
+- **Slide-to-edge auto-hide** — when auto-hide is enabled, the widget now slides to the right screen edge on mouse leave instead of collapsing to a bubble. A small blue pull-tab (◀) remains visible at the edge, semi-transparent at rest and fully opaque on hover. Click the tab to slide the widget back out.
+
 ### v1.4.1
 **Features**
-- **Bubble auto-hide** — when auto-hide is enabled, the widget now collapses to a small blue circle (bubble) instead of a header strip, with a smooth scale animation. Click the bubble to expand. Hover still fades it to full opacity as a visual cue.
+- **Bubble auto-hide** — widget collapses to a small blue circle with a smooth scale animation on mouse leave. Click to expand. (Replaced by slide-to-edge in v1.5.0.)
 
 ### v1.4.0
 **Features**
@@ -282,7 +288,7 @@ iscc RdpLauncher.iss      # produces RdpLauncherSetup.exe
 **Features**
 - **Dark mode** — automatically matches the Windows dark/light theme and updates live when you switch themes.
 - **Adjustable opacity** — scroll the mouse wheel on the widget header to set resting opacity (30%–100%). Widget fades to full opacity on hover, fades back on mouse leave. Saved between sessions.
-- **Auto-hide** — ⇥ button collapses the widget to just the header bar on mouse leave; expands on hover. ⇤ to disable. (Upgraded to bubble in v1.4.1.)
+- **Auto-hide** — ⇥ button collapses the widget to just the header bar on mouse leave; expands on hover. ⇤ to disable. (Upgraded to bubble in v1.4.1, then slide-to-edge in v1.5.0.)
 - **Smarter new VM defaults** — Share Clipboard, Full Screen, and Skip Certificate Warning are now checked by default when adding a new VM.
 
 ### v1.2.0
